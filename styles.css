@@ -3,6 +3,8 @@ body {
     text-align: center;
     background-color: #008000;
     color: #fff;
+    margin: 0;
+    padding: 0;
 }
 
 h1 {
@@ -50,7 +52,8 @@ h1 {
 }
 
 .player-hand {
-    margin: 10px 20px; /* 左右のマージンを追加して横の間隔を広げました */
+    margin: 20px;
+    width: 200px;
 }
 
 .player-hand .hand-cards {
@@ -59,15 +62,32 @@ h1 {
 }
 
 .answer-button {
-    margin-left: 10px;
+    margin-top: 10px;
+    width: 100%;
+}
+
+button {
+    font-size: 18px;
+    padding: 15px 25px;
+    margin: 10px;
 }
 
 #new-hand-button, #mode-button, #chop-button {
     margin: 20px;
-    padding: 10px 20px;
+    padding: 15px 25px;
+    font-size: 18px;
 }
 
-/* カウンターのスタイル */
+select {
+    font-size: 18px;
+    padding: 5px;
+    margin-left: 10px;
+}
+
+label {
+    font-size: 18px;
+}
+
 #counter {
     margin: 20px;
     font-size: 24px;
@@ -76,9 +96,67 @@ h1 {
 /* 選択肢のボタンスタイル */
 .hand-options {
     margin-top: 10px;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
 }
 
 .hand-options .option-button {
     margin: 5px;
-    padding: 5px 10px;
+    padding: 10px 15px;
+    font-size: 16px;
+}
+
+/* スマートフォン向けのレスポンシブデザイン */
+@media (max-width: 600px) {
+    body {
+        font-size: 16px;
+    }
+
+    .card {
+        width: 50px;
+        height: 75px;
+        font-size: 16px;
+    }
+
+    .card .suit {
+        font-size: 20px;
+    }
+
+    .player-hand {
+        width: 90%;
+        margin: 10px auto;
+    }
+
+    button {
+        width: 90%;
+        font-size: 20px;
+        padding: 15px;
+    }
+
+    #new-hand-button, #mode-button, #chop-button {
+        width: 90%;
+        font-size: 20px;
+        padding: 15px;
+    }
+
+    .hand-options .option-button {
+        width: 45%;
+        margin: 5px 2%;
+        font-size: 18px;
+        padding: 10px;
+    }
+
+    #hands {
+        flex-direction: column;
+        align-items: center;
+    }
+
+    select {
+        font-size: 18px;
+    }
+
+    label {
+        font-size: 18px;
+    }
 }
