@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <title>ボタンで丸を表示</title>
+    <style>
+        #circle {
+            width: 100px;
+            height: 100px;
+            background-color: red;
+            border-radius: 50%;
+            display: none;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <button id="showButton">丸を表示する</button>
+    <div id="circle"></div>
+
+    <script>
+        document.getElementById('showButton').addEventListener('click', function() {
+            document.getElementById('circle').style.display = 'block';
+        });
+    </script>
+</body>
+</html>
