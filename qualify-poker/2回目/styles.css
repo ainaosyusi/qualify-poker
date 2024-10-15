@@ -1,0 +1,84 @@
+body {
+    font-family: Arial, sans-serif;
+    text-align: center;
+    background-color: #008000;
+    color: #fff;
+}
+
+h1 {
+    margin-top: 20px;
+}
+
+#player-selection {
+    margin: 20px;
+}
+
+#board {
+    display: flex;
+    justify-content: center;
+    margin: 20px;
+}
+
+#hands {
+    display: flex;
+    flex-wrap: wrap; /* プレイヤーのハンドを横に並べる */
+    justify-content: center;
+    margin: 20px;
+}
+
+.card {
+    width: 60px;
+    height: 90px;
+    border: 1px solid #fff;
+    border-radius: 5px;
+    background-color: #fff;
+    color: #000;
+    margin: 0 5px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    position: relative;
+    overflow: hidden;
+}
+
+.card .suit {
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    font-size: 24px;
+}
+
+.player-hand {
+    margin: 10px 20px; /* 左右のマージンを追加して横の間隔を広げました */
+}
+
+.player-hand .hand-cards {
+    display: flex;
+    justify-content: center;
+}
+
+.answer-button {
+    margin-left: 10px;
+}
+
+#new-hand-button, #mode-button, #chop-button {
+    margin: 20px;
+    padding: 10px 20px;
+}
+
+/* カウンターのスタイル */
+#counter {
+    margin: 20px;
+    font-size: 24px;
+}
+
+/* 選択肢のボタンスタイル */
+.hand-options {
+    margin-top: 10px;
+}
+
+.hand-options .option-button {
+    margin: 5px;
+    padding: 5px 10px;
+}
