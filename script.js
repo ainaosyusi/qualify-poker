@@ -19,8 +19,10 @@ const valueRanks = {
     'A': 14
 };
 
-// ゲームモード： 'hand'（役を選ぶ）または 'winner'（勝者を選ぶ）
-let gameMode = 'hand'; // デフォルトで役を選ぶモードに設定
+// ゲームモード
+let gameMode = 'normal'; // 'normal' または 'mix'
+let subGameMode = 'hand'; // 'hand' または 'winner'、ミックスゲームでも使用
+let mixGameType = ''; // 'superHoldem' または 'ocean' for mix mode
 
 // タイムアタックモードかどうかのフラグ
 let isTimeAttack = false;
@@ -47,30 +49,109 @@ let incorrectAnswers = 0;
 let hasMistakeInRound = false;
 
 // モード選択ボタンのイベントリスナー
+document.getElementById('mode-normal-button').addEventListener('click', () => {
+    gameMode = 'normal';
+    updateMainModeButtons();
+    document.body.classList.remove('mix-mode');
+});
+
+document.getElementById('mode-mix-button').addEventListener('click', () => {
+    gameMode = 'mix';
+    updateMainModeButtons();
+    document.body.classList.add('mix-mode');
+});
+
+// サブモード（通常モード）のボタンのイベントリスナー
 document.getElementById('mode-hand-button').addEventListener('click', () => {
-    gameMode = 'hand';
-    updateModeButtons();
+    subGameMode = 'hand';
+    updateSubModeButtons();
 });
 
 document.getElementById('mode-winner-button').addEventListener('click', () => {
-    gameMode = 'winner';
-    updateModeButtons();
+    subGameMode = 'winner';
+    updateSubModeButtons();
 });
 
 document.getElementById('time-attack-button').addEventListener('click', () => {
     isTimeAttack = !isTimeAttack;
     document.getElementById('time-attack-button').innerHTML = isTimeAttack ? 'タイムアタックモード中' : 'タイムアタックモード';
-    // タイムアタックモードでもプレイヤー人数を選択可能にする
-    document.getElementById('num-players').disabled = false;
     updateCounter();
 });
 
-// モードボタンの状態を更新する関数
-function updateModeButtons() {
+// ミックスゲームのボタンのイベントリスナー
+document.getElementById('super-holdem-button').addEventListener('click', () => {
+    mixGameType = 'superHoldem';
+    updateMixModeButtons();
+});
+
+document.getElementById('ocean-button').addEventListener('click', () => {
+    mixGameType = 'ocean';
+    updateMixModeButtons();
+});
+
+// ミックスゲームのサブモードボタンのイベントリスナー
+document.getElementById('mix-mode-hand-button').addEventListener('click', () => {
+    subGameMode = 'hand';
+    updateMixSubModeButtons();
+});
+
+document.getElementById('mix-mode-winner-button').addEventListener('click', () => {
+    subGameMode = 'winner';
+    updateMixSubModeButtons();
+});
+
+// メインモードボタンの状態を更新する関数
+function updateMainModeButtons() {
+    const normalButton = document.getElementById('mode-normal-button');
+    const mixButton = document.getElementById('mode-mix-button');
+
+    if (gameMode === 'normal') {
+        normalButton.classList.add('active-mode');
+        mixButton.classList.remove('active-mode');
+        document.getElementById('normal-mode-options').style.display = 'block';
+        document.getElementById('mix-mode-options').style.display = 'none';
+    } else {
+        normalButton.classList.remove('active-mode');
+        mixButton.classList.add('active-mode');
+        document.getElementById('normal-mode-options').style.display = 'none';
+        document.getElementById('mix-mode-options').style.display = 'block';
+    }
+}
+
+// サブモードボタンの状態を更新する関数（通常モード）
+function updateSubModeButtons() {
     const handButton = document.getElementById('mode-hand-button');
     const winnerButton = document.getElementById('mode-winner-button');
 
-    if (gameMode === 'hand') {
+    if (subGameMode === 'hand') {
+        handButton.classList.add('active-mode');
+        winnerButton.classList.remove('active-mode');
+    } else {
+        handButton.classList.remove('active-mode');
+        winnerButton.classList.add('active-mode');
+    }
+}
+
+// ミックスゲームボタンの状態を更新する関数
+function updateMixModeButtons() {
+    const superHoldemButton = document.getElementById('super-holdem-button');
+    const oceanButton = document.getElementById('ocean-button');
+
+    if (mixGameType === 'superHoldem') {
+        superHoldemButton.classList.add('active-mode');
+        oceanButton.classList.remove('active-mode');
+    } else if (mixGameType === 'ocean') {
+        superHoldemButton.classList.remove('active-mode');
+        oceanButton.classList.add('active-mode');
+    }
+}
+
+// ミックスゲームのサブモードボタンの状態を更新する関数
+function updateMixSubModeButtons() {
+    const handButton = document.getElementById('mix-mode-hand-button');
+    const winnerButton = document.getElementById('mix-mode-winner-button');
+
+    if (subGameMode === 'hand') {
         handButton.classList.add('active-mode');
         winnerButton.classList.remove('active-mode');
     } else {
@@ -80,9 +161,11 @@ function updateModeButtons() {
 }
 
 // ページ読み込み時にモードボタンを更新
-updateModeButtons();
+updateMainModeButtons();
+updateSubModeButtons();
+updateMixSubModeButtons();
 
-// スタートボタンのイベントリスナー
+// 通常モードのスタートボタンのイベントリスナー
 document.getElementById('start-button').addEventListener('click', () => {
     if (isTimeAttack) {
         // タイムアタックモードの場合、カウンターとタイマーを初期化
@@ -95,8 +178,17 @@ document.getElementById('start-button').addEventListener('click', () => {
     }
     let numPlayers = parseInt(document.getElementById('num-players').value);
     startGame(numPlayers);
-    document.getElementById('player-selection').style.display = 'none';
-    document.getElementById('mode-selection').style.display = 'none';
+    document.getElementById('game-selection').style.display = 'none';
+    document.getElementById('game-area').style.display = 'block';
+    updateCounter();
+});
+
+// ミックスゲームのスタートボタンのイベントリスナー
+document.getElementById('mix-start-button').addEventListener('click', () => {
+    correctStreak = 0;
+    let numPlayers = parseInt(document.getElementById('mix-num-players').value);
+    startGame(numPlayers);
+    document.getElementById('game-selection').style.display = 'none';
     document.getElementById('game-area').style.display = 'block';
     updateCounter();
 });
@@ -109,8 +201,7 @@ document.getElementById('chop-button').addEventListener('click', () => {
 // 「スタートに戻る」ボタンのイベントリスナー
 document.getElementById('restart-button').addEventListener('click', () => {
     document.getElementById('result-area').style.display = 'none';
-    document.getElementById('player-selection').style.display = 'block';
-    document.getElementById('mode-selection').style.display = 'block';
+    document.getElementById('game-selection').style.display = 'block';
     document.getElementById('counter').innerHTML = '';
     document.getElementById('timer').innerHTML = '';
     correctStreak = 0;
@@ -120,8 +211,7 @@ document.getElementById('restart-button').addEventListener('click', () => {
 // メインメニューに戻るボタンのイベントリスナー
 document.getElementById('main-menu-button').addEventListener('click', () => {
     document.getElementById('game-area').style.display = 'none';
-    document.getElementById('player-selection').style.display = 'block';
-    document.getElementById('mode-selection').style.display = 'block';
+    document.getElementById('game-selection').style.display = 'block';
     document.getElementById('counter').innerHTML = '';
     document.getElementById('timer').innerHTML = '';
     correctStreak = 0;
@@ -130,7 +220,9 @@ document.getElementById('main-menu-button').addEventListener('click', () => {
 
 // 「次の問題に進む」ボタンのイベントリスナー
 document.getElementById('next-button').addEventListener('click', () => {
-    let numPlayers = parseInt(document.getElementById('num-players').value);
+    let numPlayers = gameMode === 'normal' ?
+        parseInt(document.getElementById('num-players').value) :
+        parseInt(document.getElementById('mix-num-players').value);
     startGame(numPlayers);
 });
 
@@ -230,7 +322,11 @@ function startGame(numPlayers) {
     document.getElementById('chop-button').disabled = true;
 
     // ボードカードの表示
-    let boardCards = deck.splice(0, 5);
+    let boardCardCount = 5;
+    if (gameMode === 'mix' && mixGameType === 'ocean') {
+        boardCardCount = 6; // オーシャンではボードが6枚
+    }
+    let boardCards = deck.splice(0, boardCardCount);
     let boardDiv = document.getElementById('board');
     boardDiv.innerHTML = '';
     boardCards.forEach(card => {
@@ -254,7 +350,13 @@ function startGame(numPlayers) {
             let handCardsDiv = document.createElement('div');
             handCardsDiv.className = 'hand-cards';
 
-            let playerCards = deck.splice(0, 2);
+            // ハンドのカード数を決定
+            let handCardCount = 2;
+            if (gameMode === 'mix' && mixGameType === 'superHoldem') {
+                handCardCount = 3; // スーパーホールデムではハンドが3枚
+            }
+
+            let playerCards = deck.splice(0, handCardCount);
             playerCards.forEach(card => {
                 handCardsDiv.appendChild(renderCard(card));
             });
@@ -461,7 +563,7 @@ function checkHand(playerIndex, button, playerHandDiv) {
             startGame(numPlayers);
         }
     } else {
-        if (gameMode === 'hand') {
+        if (subGameMode === 'hand') {
             // 役を選ぶモード
             // 既に選択肢が表示されている場合は何もしない
             if (playerHandDiv.querySelector('.hand-options')) {
@@ -540,7 +642,10 @@ function checkHand(playerIndex, button, playerHandDiv) {
 // 「チョップ」をチェックする関数
 function checkChop() {
     let isTie = isTieGame();
-    let numPlayers = parseInt(document.getElementById('num-players').value);
+    let numPlayers = gameMode === 'normal' ?
+        parseInt(document.getElementById('num-players').value) :
+        parseInt(document.getElementById('mix-num-players').value);
+
     if (isTimeAttack) {
         totalQuestions++;
         if (isTie) {
