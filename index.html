@@ -7,6 +7,11 @@
 </head>
 <body>
     <h1>役判定練習</h1>
+    <div id="mode-selection">
+        <button id="mode-hand-button">役を選ぶモード</button>
+        <button id="mode-winner-button">勝者を選ぶモード</button>
+        <button id="time-attack-button">タイムアタックモード</button>
+    </div>
     <div id="player-selection">
         <label for="num-players">プレイヤーの人数を選択：</label>
         <select id="num-players">
@@ -23,9 +28,8 @@
     </div>
 
     <div id="game-area" style="display: none;">
-        <!-- カウンターの表示位置 -->
-        <!-- カウンターはJavaScriptで動的に追加されます -->
-
+        <div id="timer" style="font-size: 24px; margin: 20px;"></div>
+        <div id="counter" style="font-size: 24px; margin: 20px;"></div>
         <div id="board-cards">
             <h2>ボード</h2>
             <div id="board"></div>
@@ -36,9 +40,15 @@
             <div id="hands"></div>
         </div>
 
-        <button id="new-hand-button">新しいハンド</button>
-        <button id="mode-button">役を選ぶモードに切替</button>
         <button id="chop-button">チョップ</button>
+        <button id="next-button" style="display: none;">次の問題に進む</button>
+        <button id="main-menu-button">メインメニューに戻る</button>
+    </div>
+
+    <div id="result-area" style="display: none;">
+        <h2>結果</h2>
+        <p id="result-message"></p>
+        <button id="restart-button">スタートに戻る</button>
     </div>
 
     <script src="script.js"></script>
