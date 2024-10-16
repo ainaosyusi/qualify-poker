@@ -8,23 +8,48 @@
 <body>
     <h1>役判定練習</h1>
     <div id="mode-selection">
-        <button id="mode-hand-button">役を選ぶモード</button>
-        <button id="mode-winner-button">勝者を選ぶモード</button>
-        <button id="time-attack-button">タイムアタックモード</button>
+        <button id="mode-normal-button">通常の役判定</button>
+        <button id="mode-mix-button">ミックスゲーム役判定</button>
     </div>
-    <div id="player-selection">
-        <label for="num-players">プレイヤーの人数を選択：</label>
-        <select id="num-players">
-            <option value="2">2人</option>
-            <option value="3">3人</option>
-            <option value="4">4人</option>
-            <option value="5">5人</option>
-            <option value="6">6人</option>
-            <option value="7">7人</option>
-            <option value="8">8人</option>
-            <option value="9">9人</option>
-        </select>
-        <button id="start-button">開始</button>
+    <div id="game-selection">
+        <!-- 通常モードの選択肢 -->
+        <div id="normal-mode-options">
+            <button id="mode-hand-button">役を選ぶモード</button>
+            <button id="mode-winner-button">勝者を選ぶモード</button>
+            <button id="time-attack-button">タイムアタックモード</button>
+            <div id="player-selection">
+                <label for="num-players">プレイヤーの人数を選択：</label>
+                <select id="num-players">
+                    <option value="2">2人</option>
+                    <option value="3">3人</option>
+                    <option value="4">4人</option>
+                    <option value="5">5人</option>
+                    <option value="6">6人</option>
+                    <option value="7">7人</option>
+                    <option value="8">8人</option>
+                    <option value="9">9人</option>
+                </select>
+                <button id="start-button">開始</button>
+            </div>
+        </div>
+        <!-- ミックスゲームの選択肢 -->
+        <div id="mix-mode-options" style="display: none;">
+            <button id="super-holdem-button">スーパーホールデム</button>
+            <button id="ocean-button">オーシャン</button>
+            <div id="mix-sub-mode-selection">
+                <button id="mix-mode-hand-button">役を選ぶモード</button>
+                <button id="mix-mode-winner-button">勝者を選ぶモード</button>
+            </div>
+            <div id="mix-player-selection">
+                <label for="mix-num-players">プレイヤーの人数を選択：</label>
+                <select id="mix-num-players">
+                    <option value="2">2人</option>
+                    <option value="3">3人</option>
+                    <option value="4">4人</option>
+                </select>
+                <button id="mix-start-button">開始</button>
+            </div>
+        </div>
     </div>
 
     <div id="game-area" style="display: none;">
