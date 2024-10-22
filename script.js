@@ -48,6 +48,16 @@ let incorrectAnswers = 0;
 // 不正解フラグ
 let hasMistakeInRound = false;
 
+// 不正解の問題を保存する配列を追加
+let incorrectQuestions = [];
+
+// 現在の問題のデータを保存するオブジェクト
+let currentQuestionData = {
+    boardCards: [],
+    playerHands: [],
+    correctHandNames: []
+};
+
 // モード選択ボタンのイベントリスナー
 document.getElementById('mode-normal-button').addEventListener('click', () => {
     gameMode = 'normal';
@@ -172,6 +182,7 @@ document.getElementById('start-button').addEventListener('click', () => {
         totalQuestions = 0;
         correctAnswers = 0;
         incorrectAnswers = 0;
+        incorrectQuestions = []; // 間違えた問題をリセット
         startTimer();
     } else {
         correctStreak = 0;
@@ -185,7 +196,16 @@ document.getElementById('start-button').addEventListener('click', () => {
 
 // ミックスゲームのスタートボタンのイベントリスナー
 document.getElementById('mix-start-button').addEventListener('click', () => {
-    correctStreak = 0;
+    if (isTimeAttack) {
+        // タイムアタックモードの場合、カウンターとタイマーを初期化
+        totalQuestions = 0;
+        correctAnswers = 0;
+        incorrectAnswers = 0;
+        incorrectQuestions = []; // 間違えた問題をリセット
+        startTimer();
+    } else {
+        correctStreak = 0;
+    }
     let numPlayers = parseInt(document.getElementById('mix-num-players').value);
     startGame(numPlayers);
     document.getElementById('game-selection').style.display = 'none';
@@ -198,15 +218,26 @@ document.getElementById('chop-button').addEventListener('click', () => {
     checkChop();
 });
 
-// 「スタートに戻る」ボタンのイベントリスナー
-document.getElementById('restart-button').addEventListener('click', () => {
+// 「スタートに戻る」ボタンのイベントリスナーを修正
+document.getElementById('result-restart-button').addEventListener('click', () => {
+    resetGame();
+});
+
+document.getElementById('review-restart-button').addEventListener('click', () => {
+    resetGame();
+});
+
+// リセット用の関数を作成
+function resetGame() {
     document.getElementById('result-area').style.display = 'none';
+    document.getElementById('review-area').style.display = 'none';
     document.getElementById('game-selection').style.display = 'block';
     document.getElementById('counter').innerHTML = '';
     document.getElementById('timer').innerHTML = '';
     correctStreak = 0;
+    incorrectQuestions = []; // 間違えた問題をリセット
     stopTimer();
-});
+}
 
 // メインメニューに戻るボタンのイベントリスナー
 document.getElementById('main-menu-button').addEventListener('click', () => {
@@ -229,7 +260,7 @@ document.getElementById('next-button').addEventListener('click', () => {
 // カウンターの表示を更新
 function updateCounter() {
     if (isTimeAttack) {
-        document.getElementById('counter').innerHTML = `正解数: ${correctAnswers} / 20`;
+        document.getElementById('counter').innerHTML = `問題数: ${totalQuestions} / 20`;
     } else {
         document.getElementById('counter').innerHTML = `ミスなし回数: ${correctStreak}`;
     }
@@ -256,8 +287,49 @@ function endGame() {
     document.getElementById('result-area').style.display = 'block';
 
     let elapsedTime = Math.floor((Date.now() - startTime) / 1000);
-    let resultMessage = `タイム: ${elapsedTime} 秒<br>間違えた問題数: ${incorrectAnswers}`;
+
+    // プレイヤー数の取得（通常モードとミックスモードに対応）
+    let numPlayers = gameMode === 'normal' ?
+        parseInt(document.getElementById('num-players').value) :
+        parseInt(document.getElementById('mix-num-players').value);
+
+    // スコアの計算
+    let score = 400 - elapsedTime - (5 * incorrectAnswers) + (numPlayers - 2) * 30;
+
+    // ランクの判定と文字色の設定
+    let rank = '';
+    let rankColor = '';
+    if (score >= 340) {
+        rank = 'S';
+        rankColor = 'gold';
+    } else if (score >= 300) {
+        rank = 'A';
+        rankColor = 'red';
+    } else if (score >= 260) {
+        rank = 'B';
+        rankColor = 'blue';
+    } else if (score >= 220) {
+        rank = 'C';
+        rankColor = 'yellow';
+    } else {
+        rank = 'D';
+        rankColor = 'black';
+    }
+
+    // 結果メッセージの更新
+    let resultMessage = 'タイム: ' + elapsedTime + ' 秒<br>' +
+                        '間違えた問題数: ' + incorrectAnswers + '<br>' +
+                        'スコア: ' + score + '<br>' +
+                        'ランク: <span style="color: ' + rankColor + '; font-size: 24px;">' + rank + '</span>';
+
     document.getElementById('result-message').innerHTML = resultMessage;
+
+    // 振り返りボタンの表示
+    if (incorrectQuestions.length > 0) {
+        document.getElementById('review-button').style.display = 'inline-block';
+    } else {
+        document.getElementById('review-button').style.display = 'none';
+    }
 }
 
 // デッキを生成
@@ -318,6 +390,13 @@ function startGame(numPlayers) {
     // プレイヤーの手役データをリセット
     playerHandsData = [];
 
+    // 現在の問題データを保存するオブジェクトを初期化
+    currentQuestionData = {
+        boardCards: [],
+        playerHands: [],
+        correctHandNames: []
+    };
+
     // 「チョップ」ボタンを無効化
     document.getElementById('chop-button').disabled = true;
 
@@ -332,6 +411,9 @@ function startGame(numPlayers) {
     boardCards.forEach(card => {
         boardDiv.appendChild(renderCard(card));
     });
+
+    // ボードカードを保存
+    currentQuestionData.boardCards = boardCards;
 
     // ハンドエリアをクリア
     let handsDiv = document.getElementById('hands');
@@ -372,6 +454,13 @@ function startGame(numPlayers) {
                 cards: fullHand
             });
 
+            // プレイヤーのハンドを保存
+            currentQuestionData.playerHands.push({
+                playerIndex: i,
+                handCards: playerCards,
+                evaluatedHand: evaluatedHand
+            });
+
             let answerButton = document.createElement('button');
             answerButton.className = 'answer-button';
             answerButton.innerHTML = '答え合わせ';
@@ -382,6 +471,9 @@ function startGame(numPlayers) {
             playerHandDiv.appendChild(answerButton);
             handsDiv.appendChild(playerHandDiv);
         }
+
+        // 正解の手役を保存
+        currentQuestionData.correctHandNames = playerHandsData.map(data => data.hand.name);
 
         // 「チョップ」ボタンを有効化
         document.getElementById('chop-button').disabled = false;
@@ -552,11 +644,15 @@ function checkHand(playerIndex, button, playerHandDiv) {
             correctAnswers++;
         } else {
             incorrectAnswers++;
+            // 間違えた問題を保存
+            saveIncorrectQuestion();
         }
 
-        let numPlayers = parseInt(document.getElementById('num-players').value);
+        let numPlayers = gameMode === 'normal' ?
+            parseInt(document.getElementById('num-players').value) :
+            parseInt(document.getElementById('mix-num-players').value);
 
-        if (correctAnswers >= 20) {
+        if (totalQuestions >= 20) {
             endGame();
         } else {
             // 次の問題へ
@@ -642,22 +738,24 @@ function checkHand(playerIndex, button, playerHandDiv) {
 // 「チョップ」をチェックする関数
 function checkChop() {
     let isTie = isTieGame();
-    let numPlayers = gameMode === 'normal' ?
-        parseInt(document.getElementById('num-players').value) :
-        parseInt(document.getElementById('mix-num-players').value);
+    totalQuestions++; // 合計問題数をインクリメント
 
     if (isTimeAttack) {
-        totalQuestions++;
         if (isTie) {
             correctAnswers++;
         } else {
             incorrectAnswers++;
+            // 間違えた問題を保存
+            saveIncorrectQuestion();
         }
 
-        if (correctAnswers >= 20) {
+        if (totalQuestions >= 20) {
             endGame();
         } else {
             // 次の問題へ
+            let numPlayers = gameMode === 'normal' ?
+                parseInt(document.getElementById('num-players').value) :
+                parseInt(document.getElementById('mix-num-players').value);
             startGame(numPlayers);
         }
     } else {
@@ -682,6 +780,16 @@ function checkChop() {
     }
 }
 
+// 間違えた問題を保存する関数
+function saveIncorrectQuestion() {
+    // 現在の問題のデータを保存
+    incorrectQuestions.push({
+        boardCards: currentQuestionData.boardCards,
+        playerHands: currentQuestionData.playerHands,
+        correctHandNames: currentQuestionData.correctHandNames
+    });
+}
+
 // ゲーム全体が引き分けかどうかを判定する関数
 function isTieGame() {
     let winnerIndices = getWinnerIndices();
@@ -702,4 +810,61 @@ function getWinnerIndices() {
         }
     }
     return winnerIndices;
+}
+
+// 「振り返り」ボタンのイベントリスナー
+document.getElementById('review-button').addEventListener('click', () => {
+    showReview();
+});
+
+// 振り返り画面を表示する関数
+function showReview() {
+    document.getElementById('result-area').style.display = 'none';
+    document.getElementById('review-area').style.display = 'block';
+
+    let reviewContent = document.getElementById('review-content');
+    reviewContent.innerHTML = '';
+
+    incorrectQuestions.forEach((question, index) => {
+        let questionDiv = document.createElement('div');
+        questionDiv.className = 'review-question';
+
+        // 問題番号
+        let questionTitle = document.createElement('h3');
+        questionTitle.innerHTML = `問題 ${index + 1}`;
+        questionDiv.appendChild(questionTitle);
+
+        // ボードカードの表示
+        let boardDiv = document.createElement('div');
+        boardDiv.className = 'board-cards';
+        question.boardCards.forEach(card => {
+            boardDiv.appendChild(renderCard(card));
+        });
+        questionDiv.appendChild(boardDiv);
+
+        // プレイヤーのハンドと正解の手役を表示
+        question.playerHands.forEach(player => {
+            let playerDiv = document.createElement('div');
+            playerDiv.className = 'player-hand';
+
+            let playerTitle = document.createElement('h4');
+            playerTitle.innerHTML = `プレイヤー ${player.playerIndex + 1}`;
+            playerDiv.appendChild(playerTitle);
+
+            let handCardsDiv = document.createElement('div');
+            handCardsDiv.className = 'hand-cards';
+            player.handCards.forEach(card => {
+                handCardsDiv.appendChild(renderCard(card));
+            });
+            playerDiv.appendChild(handCardsDiv);
+
+            let handNameDiv = document.createElement('p');
+            handNameDiv.innerHTML = `役: ${player.evaluatedHand.name}`;
+            playerDiv.appendChild(handNameDiv);
+
+            questionDiv.appendChild(playerDiv);
+        });
+
+        reviewContent.appendChild(questionDiv);
+    });
 }

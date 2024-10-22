@@ -152,6 +152,26 @@ body.mix-mode .active-mode {
     margin: 10px;
 }
 
+/* 振り返りエリアのスタイル */
+#review-area {
+    text-align: center;
+    margin: 20px;
+}
+
+.review-question {
+    margin-bottom: 40px;
+}
+
+.board-cards, .hand-cards {
+    display: flex;
+    justify-content: center;
+    margin: 10px;
+}
+
+.player-hand {
+    margin: 10px;
+}
+
 /* スマートフォン向けのレスポンシブデザイン */
 @media (max-width: 600px) {
     body {
