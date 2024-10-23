@@ -41,9 +41,9 @@ let timerInterval;
 let startTime;
 
 // 問題数と正解数、不正解数の管理
-let totalQuestions = 0;
-let correctAnswers = 0;
-let incorrectAnswers = 0;
+let totalQuestions = 0; // 正解した問題数
+let correctAnswers = 0; // 正解した問題数（totalQuestionsと同じ役割）
+let incorrectAnswers = 0; // 不正解数
 
 // 不正解フラグ
 let hasMistakeInRound = false;
@@ -179,7 +179,7 @@ updateMixSubModeButtons();
 document.getElementById('start-button').addEventListener('click', () => {
     if (isTimeAttack) {
         // タイムアタックモードの場合、カウンターとタイマーを初期化
-        totalQuestions = 0;
+        totalQuestions = 0; // 正解数をリセット
         correctAnswers = 0;
         incorrectAnswers = 0;
         incorrectQuestions = []; // 間違えた問題をリセット
@@ -198,7 +198,7 @@ document.getElementById('start-button').addEventListener('click', () => {
 document.getElementById('mix-start-button').addEventListener('click', () => {
     if (isTimeAttack) {
         // タイムアタックモードの場合、カウンターとタイマーを初期化
-        totalQuestions = 0;
+        totalQuestions = 0; // 正解数をリセット
         correctAnswers = 0;
         incorrectAnswers = 0;
         incorrectQuestions = []; // 間違えた問題をリセット
@@ -260,7 +260,7 @@ document.getElementById('next-button').addEventListener('click', () => {
 // カウンターの表示を更新
 function updateCounter() {
     if (isTimeAttack) {
-        document.getElementById('counter').innerHTML = `問題数: ${totalQuestions} / 20`;
+        document.getElementById('counter').innerHTML = `正解数: ${totalQuestions} / 20`;
     } else {
         document.getElementById('counter').innerHTML = `ミスなし回数: ${correctStreak}`;
     }
@@ -632,7 +632,6 @@ function checkHand(playerIndex, button, playerHandDiv) {
     let isTie = isTieGame();
 
     if (isTimeAttack) {
-        totalQuestions++;
         let isCorrect = false;
         if (isTie) {
             isCorrect = false;
@@ -642,6 +641,7 @@ function checkHand(playerIndex, button, playerHandDiv) {
 
         if (isCorrect) {
             correctAnswers++;
+            totalQuestions++;
         } else {
             incorrectAnswers++;
             // 間違えた問題を保存
@@ -656,6 +656,7 @@ function checkHand(playerIndex, button, playerHandDiv) {
             endGame();
         } else {
             // 次の問題へ
+            updateCounter();
             startGame(numPlayers);
         }
     } else {
@@ -738,11 +739,13 @@ function checkHand(playerIndex, button, playerHandDiv) {
 // 「チョップ」をチェックする関数
 function checkChop() {
     let isTie = isTieGame();
-    totalQuestions++; // 合計問題数をインクリメント
 
     if (isTimeAttack) {
-        if (isTie) {
+        let isCorrect = isTie;
+
+        if (isCorrect) {
             correctAnswers++;
+            totalQuestions++;
         } else {
             incorrectAnswers++;
             // 間違えた問題を保存
@@ -753,6 +756,7 @@ function checkChop() {
             endGame();
         } else {
             // 次の問題へ
+            updateCounter();
             let numPlayers = gameMode === 'normal' ?
                 parseInt(document.getElementById('num-players').value) :
                 parseInt(document.getElementById('mix-num-players').value);
