@@ -24,6 +24,9 @@ let gameMode = 'normal'; // 'normal' または 'mix'
 let subGameMode = 'hand'; // 'hand' または 'winner'、ミックスゲームでも使用
 let mixGameType = ''; // 'superHoldem' または 'ocean' for mix mode
 
+// カラーアシストモードのフラグ
+let colorAssistMode = false;
+
 // タイムアタックモードかどうかのフラグ
 let isTimeAttack = false;
 
@@ -110,6 +113,12 @@ document.getElementById('mix-mode-winner-button').addEventListener('click', () =
     updateMixSubModeButtons();
 });
 
+// 色アシストボタンのイベントリスナー
+document.getElementById('color-assist-button').addEventListener('click', () => {
+    colorAssistMode = !colorAssistMode;
+    document.getElementById('color-assist-button').classList.toggle('active-mode', colorAssistMode);
+});
+
 // メインモードボタンの状態を更新する関数
 function updateMainModeButtons() {
     const normalButton = document.getElementById('mode-normal-button');
@@ -170,10 +179,18 @@ function updateMixSubModeButtons() {
     }
 }
 
-// ページ読み込み時にモードボタンを更新
-updateMainModeButtons();
-updateSubModeButtons();
-updateMixSubModeButtons();
+// ページ読み込み時の初期化処理
+document.addEventListener('DOMContentLoaded', () => {
+    // モードボタンの状態を更新
+    updateMainModeButtons();
+    updateSubModeButtons();
+    updateMixSubModeButtons();
+
+    // 色アシストボタンの状態を更新
+    if (colorAssistMode) {
+        document.getElementById('color-assist-button').classList.add('active-mode');
+    }
+});
 
 // 通常モードのスタートボタンのイベントリスナー
 document.getElementById('start-button').addEventListener('click', () => {
@@ -369,9 +386,25 @@ function renderCard(card) {
     suitDiv.innerHTML = card.suit;
     cardDiv.appendChild(suitDiv);
 
-    if (card.suit === '♥' || card.suit === '♦') {
-        cardDiv.style.color = 'red';
+    // スートに応じた色の設定
+    if (colorAssistMode) {
+        if (card.suit === '♥') {
+            cardDiv.style.color = 'red';
+        } else if (card.suit === '♦') {
+            cardDiv.style.color = 'blue';
+        } else if (card.suit === '♣') {
+            cardDiv.style.color = 'green';
+        } else {
+            cardDiv.style.color = 'black';
+        }
+    } else {
+        if (card.suit === '♥' || card.suit === '♦') {
+            cardDiv.style.color = 'red';
+        } else {
+            cardDiv.style.color = 'black';
+        }
     }
+
     return cardDiv;
 }
 
