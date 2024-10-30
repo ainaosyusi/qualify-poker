@@ -10,14 +10,17 @@
     <div id="mode-selection">
         <button id="mode-normal-button">通常の役判定</button>
         <button id="mode-mix-button">ミックスゲーム役判定</button>
+        <button id="mode-practice-button">実践モード</button>
         <button id="color-assist-button" class="small-button">色アシスト</button>
     </div>
     <div id="game-selection">
         <!-- 通常モードの選択肢 -->
         <div id="normal-mode-options">
-            <button id="mode-hand-button">役を選ぶモード</button>
-            <button id="mode-winner-button">勝者を選ぶモード</button>
-            <button id="time-attack-button">タイムアタックモード</button>
+            <div id="sub-mode-selection">
+                <button id="mode-hand-button">役を当てる</button>
+                <button id="mode-winner-button">勝者を当てる</button>
+                <button id="time-attack-button" class="small-button">タイムアタックモード</button>
+            </div>
             <div id="player-selection">
                 <label for="num-players">プレイヤーの人数を選択：</label>
                 <select id="num-players">
@@ -35,11 +38,14 @@
         </div>
         <!-- ミックスゲームの選択肢 -->
         <div id="mix-mode-options" style="display: none;">
-            <button id="super-holdem-button">スーパーホールデム</button>
-            <button id="ocean-button">オーシャン</button>
+            <div id="mix-game-selection">
+                <button id="super-holdem-button">スーパーホールデム</button>
+                <button id="ocean-button">オーシャン</button>
+            </div>
             <div id="mix-sub-mode-selection">
-                <button id="mix-mode-hand-button">役を選ぶモード</button>
-                <button id="mix-mode-winner-button">勝者を選ぶモード</button>
+                <button id="mix-mode-hand-button">役を当てる</button>
+                <button id="mix-mode-winner-button">勝者を当てる</button>
+                <button id="mix-time-attack-button" class="small-button">タイムアタックモード</button>
             </div>
             <div id="mix-player-selection">
                 <label for="mix-num-players">プレイヤーの人数を選択：</label>
@@ -51,6 +57,19 @@
                 <button id="mix-start-button">開始</button>
             </div>
         </div>
+        <!-- 実践モードのオプション -->
+        <div id="practice-mode-options" style="display: none;">
+            <h2>実践モードの設定</h2>
+            <label for="practice-num-players">プレイヤー数:</label>
+            <input type="number" id="practice-num-players" value="2" min="2" max="9">
+            <div class="mode-buttons">
+                <button id="practice-mode-hand-button" class="mode-button active-mode">役を当てる</button>
+                <button id="practice-mode-winner-button" class="mode-button">勝者を当てる</button>
+            </div>
+            <button id="practice-time-attack-button">タイムアタックモード</button>
+            <button id="practice-start-button">ゲーム開始</button>
+        </div>
+
     </div>
 
     <div id="game-area" style="display: none;">
@@ -84,7 +103,8 @@
         <button id="review-restart-button">スタートに戻る</button>
     </div>
 
-    <script src="script.js"></script>
     <p id="footer">created by kyoten</p>
+
+    <script src="script.js"></script>
 </body>
 </html>

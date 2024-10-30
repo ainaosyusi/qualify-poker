@@ -20,7 +20,7 @@ const valueRanks = {
 };
 
 // ゲームモード
-let gameMode = 'normal'; // 'normal' または 'mix'
+let gameMode = 'normal'; // 'normal' または 'mix' または 'practice'
 let subGameMode = 'hand'; // 'hand' または 'winner'、ミックスゲームでも使用
 let mixGameType = ''; // 'superHoldem' または 'ocean' for mix mode
 
@@ -30,7 +30,7 @@ let colorAssistMode = false;
 // タイムアタックモードかどうかのフラグ
 let isTimeAttack = false;
 
-// 役の名前のリスト
+// 役の名前のリスト（強い順から弱い順）
 const handNames = ['ストレートフラッシュ', 'フォーカード', 'フルハウス', 'フラッシュ', 'ストレート', 'スリーカード', 'ツーペア', 'ワンペア', 'ハイカード'];
 
 // カウンターの初期化
@@ -61,17 +61,30 @@ let currentQuestionData = {
     correctHandNames: []
 };
 
+// 選択されたボードカードを格納
+let selectedBoardCards = [];
+
 // モード選択ボタンのイベントリスナー
 document.getElementById('mode-normal-button').addEventListener('click', () => {
     gameMode = 'normal';
     updateMainModeButtons();
     document.body.classList.remove('mix-mode');
+    document.body.classList.remove('practice-mode');
 });
 
 document.getElementById('mode-mix-button').addEventListener('click', () => {
     gameMode = 'mix';
     updateMainModeButtons();
     document.body.classList.add('mix-mode');
+    document.body.classList.remove('practice-mode');
+});
+
+// 実践モードボタンのイベントリスナー
+document.getElementById('mode-practice-button').addEventListener('click', () => {
+    gameMode = 'practice';
+    updateMainModeButtons();
+    document.body.classList.add('practice-mode');
+    document.body.classList.remove('mix-mode');
 });
 
 // サブモード（通常モード）のボタンのイベントリスナー
@@ -85,6 +98,7 @@ document.getElementById('mode-winner-button').addEventListener('click', () => {
     updateSubModeButtons();
 });
 
+// 通常モードのタイムアタックボタンのイベントリスナー
 document.getElementById('time-attack-button').addEventListener('click', () => {
     isTimeAttack = !isTimeAttack;
     document.getElementById('time-attack-button').innerHTML = isTimeAttack ? 'タイムアタックモード中' : 'タイムアタックモード';
@@ -113,6 +127,31 @@ document.getElementById('mix-mode-winner-button').addEventListener('click', () =
     updateMixSubModeButtons();
 });
 
+// ミックスゲームのタイムアタックボタンのイベントリスナー
+document.getElementById('mix-time-attack-button').addEventListener('click', () => {
+    isTimeAttack = !isTimeAttack;
+    document.getElementById('mix-time-attack-button').innerHTML = isTimeAttack ? 'タイムアタックモード中' : 'タイムアタックモード';
+    updateCounter();
+});
+
+// 実践モードのタイムアタックボタンのイベントリスナー
+document.getElementById('practice-time-attack-button').addEventListener('click', () => {
+    isTimeAttack = !isTimeAttack;
+    document.getElementById('practice-time-attack-button').innerHTML = isTimeAttack ? 'タイムアタックモード中' : 'タイムアタックモード';
+    updateCounter();
+});
+
+// 実践モードのサブモードボタンのイベントリスナー
+document.getElementById('practice-mode-hand-button').addEventListener('click', () => {
+    subGameMode = 'hand';
+    updatePracticeSubModeButtons();
+});
+
+document.getElementById('practice-mode-winner-button').addEventListener('click', () => {
+    subGameMode = 'winner';
+    updatePracticeSubModeButtons();
+});
+
 // 色アシストボタンのイベントリスナー
 document.getElementById('color-assist-button').addEventListener('click', () => {
     colorAssistMode = !colorAssistMode;
@@ -123,17 +162,29 @@ document.getElementById('color-assist-button').addEventListener('click', () => {
 function updateMainModeButtons() {
     const normalButton = document.getElementById('mode-normal-button');
     const mixButton = document.getElementById('mode-mix-button');
+    const practiceButton = document.getElementById('mode-practice-button');
 
     if (gameMode === 'normal') {
         normalButton.classList.add('active-mode');
         mixButton.classList.remove('active-mode');
+        practiceButton.classList.remove('active-mode');
         document.getElementById('normal-mode-options').style.display = 'block';
         document.getElementById('mix-mode-options').style.display = 'none';
-    } else {
+        document.getElementById('practice-mode-options').style.display = 'none';
+    } else if (gameMode === 'mix') {
         normalButton.classList.remove('active-mode');
         mixButton.classList.add('active-mode');
+        practiceButton.classList.remove('active-mode');
         document.getElementById('normal-mode-options').style.display = 'none';
         document.getElementById('mix-mode-options').style.display = 'block';
+        document.getElementById('practice-mode-options').style.display = 'none';
+    } else if (gameMode === 'practice') {
+        normalButton.classList.remove('active-mode');
+        mixButton.classList.remove('active-mode');
+        practiceButton.classList.add('active-mode');
+        document.getElementById('normal-mode-options').style.display = 'none';
+        document.getElementById('mix-mode-options').style.display = 'none';
+        document.getElementById('practice-mode-options').style.display = 'block';
     }
 }
 
@@ -179,12 +230,27 @@ function updateMixSubModeButtons() {
     }
 }
 
+// 実践モードのサブモードボタンの状態を更新する関数
+function updatePracticeSubModeButtons() {
+    const handButton = document.getElementById('practice-mode-hand-button');
+    const winnerButton = document.getElementById('practice-mode-winner-button');
+
+    if (subGameMode === 'hand') {
+        handButton.classList.add('active-mode');
+        winnerButton.classList.remove('active-mode');
+    } else {
+        handButton.classList.remove('active-mode');
+        winnerButton.classList.add('active-mode');
+    }
+}
+
 // ページ読み込み時の初期化処理
 document.addEventListener('DOMContentLoaded', () => {
     // モードボタンの状態を更新
     updateMainModeButtons();
     updateSubModeButtons();
     updateMixSubModeButtons();
+    updatePracticeSubModeButtons();
 
     // 色アシストボタンの状態を更新
     if (colorAssistMode) {
@@ -194,6 +260,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 // 通常モードのスタートボタンのイベントリスナー
 document.getElementById('start-button').addEventListener('click', () => {
+    gameMode = 'normal'; // 追加：念のためgameModeを明示的に設定
     if (isTimeAttack) {
         // タイムアタックモードの場合、カウンターとタイマーを初期化
         totalQuestions = 0; // 正解数をリセット
@@ -213,6 +280,7 @@ document.getElementById('start-button').addEventListener('click', () => {
 
 // ミックスゲームのスタートボタンのイベントリスナー
 document.getElementById('mix-start-button').addEventListener('click', () => {
+    gameMode = 'mix'; // 追加：念のためgameModeを明示的に設定
     if (isTimeAttack) {
         // タイムアタックモードの場合、カウンターとタイマーを初期化
         totalQuestions = 0; // 正解数をリセット
@@ -224,6 +292,25 @@ document.getElementById('mix-start-button').addEventListener('click', () => {
         correctStreak = 0;
     }
     let numPlayers = parseInt(document.getElementById('mix-num-players').value);
+    startGame(numPlayers);
+    document.getElementById('game-selection').style.display = 'none';
+    document.getElementById('game-area').style.display = 'block';
+    updateCounter();
+});
+
+// 実践モードのスタートボタンのイベントリスナー
+document.getElementById('practice-start-button').addEventListener('click', () => {
+    gameMode = 'practice'; // 修正：ここでgameModeを明示的に設定
+    if (isTimeAttack) {
+        totalQuestions = 0;
+        correctAnswers = 0;
+        incorrectAnswers = 0;
+        incorrectQuestions = [];
+        startTimer();
+    } else {
+        correctStreak = 0;
+    }
+    let numPlayers = parseInt(document.getElementById('practice-num-players').value);
     startGame(numPlayers);
     document.getElementById('game-selection').style.display = 'none';
     document.getElementById('game-area').style.display = 'block';
@@ -268,16 +355,21 @@ document.getElementById('main-menu-button').addEventListener('click', () => {
 
 // 「次の問題に進む」ボタンのイベントリスナー
 document.getElementById('next-button').addEventListener('click', () => {
-    let numPlayers = gameMode === 'normal' ?
-        parseInt(document.getElementById('num-players').value) :
-        parseInt(document.getElementById('mix-num-players').value);
+    let numPlayers;
+    if (gameMode === 'normal') {
+        numPlayers = parseInt(document.getElementById('num-players').value);
+    } else if (gameMode === 'mix') {
+        numPlayers = parseInt(document.getElementById('mix-num-players').value);
+    } else if (gameMode === 'practice') {
+        numPlayers = parseInt(document.getElementById('practice-num-players').value);
+    }
     startGame(numPlayers);
 });
 
 // カウンターの表示を更新
 function updateCounter() {
     if (isTimeAttack) {
-        document.getElementById('counter').innerHTML = `正解数: ${totalQuestions} / 20`;
+        document.getElementById('counter').innerHTML = `正解数: ${correctAnswers} / 20`;
     } else {
         document.getElementById('counter').innerHTML = `ミスなし回数: ${correctStreak}`;
     }
@@ -305,10 +397,15 @@ function endGame() {
 
     let elapsedTime = Math.floor((Date.now() - startTime) / 1000);
 
-    // プレイヤー数の取得（通常モードとミックスモードに対応）
-    let numPlayers = gameMode === 'normal' ?
-        parseInt(document.getElementById('num-players').value) :
-        parseInt(document.getElementById('mix-num-players').value);
+    // プレイヤー数の取得
+    let numPlayers;
+    if (gameMode === 'normal') {
+        numPlayers = parseInt(document.getElementById('num-players').value);
+    } else if (gameMode === 'mix') {
+        numPlayers = parseInt(document.getElementById('mix-num-players').value);
+    } else if (gameMode === 'practice') {
+        numPlayers = parseInt(document.getElementById('practice-num-players').value);
+    }
 
     // スコアの計算
     let score = 400 - elapsedTime - (5 * incorrectAnswers) + (numPlayers - 2) * 30;
@@ -370,9 +467,12 @@ function shuffle(deck) {
 }
 
 // カードを表示
-function renderCard(card) {
+function renderCard(card, isBoardCard = false) {
     let cardDiv = document.createElement('div');
     cardDiv.className = 'card';
+    // カード情報をデータ属性に保存
+    cardDiv.dataset.suit = card.suit;
+    cardDiv.dataset.value = card.value;
 
     // 値の表示
     let valueDiv = document.createElement('div');
@@ -405,7 +505,39 @@ function renderCard(card) {
         }
     }
 
+    // 実践モードでボードカードの場合、クリックイベントを追加
+if (gameMode === 'practice' && isBoardCard) {
+    cardDiv.addEventListener('click', () => {
+        if (cardDiv.classList.contains('selected')) {
+            cardDiv.classList.remove('selected');
+            toggleSelectedBoardCard(card);
+        } else {
+            // ユーザーが選択できるボードカードの最大枚数を計算
+            let maxSelectable = 5 - currentQuestionData.playerHands[0].handCards.length;
+            if (selectedBoardCards.length < maxSelectable) {
+                cardDiv.classList.add('selected');
+                toggleSelectedBoardCard(card);
+            } else {
+                alert(`これ以上カードを選択できません。`);
+            }
+        }
+    });
+}
+
+
     return cardDiv;
+}
+
+// 選択されたボードカードを管理する関数
+function toggleSelectedBoardCard(card) {
+    let index = selectedBoardCards.findIndex(c => c.suit === card.suit && c.value === card.value);
+    if (index >= 0) {
+        // 既に選択されている場合は解除
+        selectedBoardCards.splice(index, 1);
+    } else {
+        // 選択されていない場合は追加
+        selectedBoardCards.push(card);
+    }
 }
 
 // ゲーム開始
@@ -430,6 +562,8 @@ function startGame(numPlayers) {
         correctHandNames: []
     };
 
+    selectedBoardCards = []; // 選択されたボードカードをリセット
+
     // 「チョップ」ボタンを無効化
     document.getElementById('chop-button').disabled = true;
 
@@ -442,7 +576,7 @@ function startGame(numPlayers) {
     let boardDiv = document.getElementById('board');
     boardDiv.innerHTML = '';
     boardCards.forEach(card => {
-        boardDiv.appendChild(renderCard(card));
+        boardDiv.appendChild(renderCard(card, true)); // isBoardCard を true に設定
     });
 
     // ボードカードを保存
@@ -514,19 +648,42 @@ function startGame(numPlayers) {
     }, 2000); // 2秒（2000ミリ秒）待ってから実行
 }
 
-// 手役を評価する関数
-function evaluateHand(cards) {
+// 組み合わせを生成する関数
+function combinations(arr, k) {
+    let result = [];
+    function combine(start, combo) {
+        if (combo.length === k) {
+            result.push(combo);
+            return;
+        }
+        for (let i = start; i < arr.length; i++) {
+            combine(i + 1, combo.concat([arr[i]]));
+        }
+    }
+    combine(0, []);
+    return result;
+}
+
+// 5枚のカードで手役を評価する関数
+function evaluateHandCombination(cards) {
     // カードのランクとスートを取得
     let counts = {};
     let suitsCount = {};
     let ranks = [];
+    let rankToCards = {}; // ランクからカードオブジェクトへのマッピング
 
     cards.forEach(card => {
         let rank = valueRanks[card.value];
         ranks.push(rank);
         counts[rank] = (counts[rank] || 0) + 1;
-        suitsCount[card.suit] = (suitsCount[card.suit] || []);
-        suitsCount[card.suit].push(rank);
+        suitsCount[card.suit] = suitsCount[card.suit] || [];
+        suitsCount[card.suit].push(card);
+
+        // ランクからカードオブジェクトへのマッピング
+        if (!rankToCards[rank]) {
+            rankToCards[rank] = [];
+        }
+        rankToCards[rank].push(card);
     });
 
     ranks.sort((a, b) => b - a);
@@ -535,14 +692,14 @@ function evaluateHand(cards) {
     let flushSuit = null;
     for (let suit in suitsCount) {
         if (suitsCount[suit].length >= 5) {
-            flushSuit = suitsCount[suit].sort((a, b) => b - a);
+            flushSuit = suitsCount[suit].slice().sort((a, b) => valueRanks[b.value] - valueRanks[a.value]);
             break;
         }
     }
 
     // ストレートの判定
     let isStraight = false;
-    let straightRanks = [];
+    let straightCards = [];
     let uniqueRanks = [...new Set(ranks)];
 
     // Aを1として扱うために追加
@@ -555,7 +712,9 @@ function evaluateHand(cards) {
     for (let i = 0; i <= uniqueRanks.length - 5; i++) {
         if (uniqueRanks[i] - uniqueRanks[i + 4] === 4) {
             isStraight = true;
-            straightRanks = uniqueRanks.slice(i, i + 5);
+            let straightRanks = uniqueRanks.slice(i, i + 5);
+            // ストレートに使用するカードを取得
+            straightCards = getCardsByRanksForStraight(straightRanks, rankToCards);
             break;
         }
     }
@@ -563,7 +722,7 @@ function evaluateHand(cards) {
     // フラッシュの判定
     if (flushSuit) {
         // ストレートフラッシュの判定
-        let flushUniqueRanks = [...new Set(flushSuit)];
+        let flushUniqueRanks = [...new Set(flushSuit.map(card => valueRanks[card.value]))];
         if (flushUniqueRanks.includes(14)) {
             flushUniqueRanks.push(1);
         }
@@ -571,14 +730,17 @@ function evaluateHand(cards) {
 
         for (let i = 0; i <= flushUniqueRanks.length - 5; i++) {
             if (flushUniqueRanks[i] - flushUniqueRanks[i + 4] === 4) {
-                return { rank: 9, name: 'ストレートフラッシュ', cards: flushUniqueRanks.slice(i, i + 5) };
+                let straightFlushRanks = flushUniqueRanks.slice(i, i + 5);
+                let straightFlushCards = getCardsByRanksAndSuitForStraight(straightFlushRanks, flushSuit);
+                return { rank: 9, name: 'ストレートフラッシュ', cards: straightFlushRanks, fullHandCards: straightFlushCards };
             }
         }
-        return { rank: 6, name: 'フラッシュ', cards: flushSuit.slice(0, 5) };
+        let handCards = flushSuit.slice(0, 5);
+        return { rank: 6, name: 'フラッシュ', cards: handCards.map(card => valueRanks[card.value]), fullHandCards: handCards };
     }
 
     if (isStraight) {
-        return { rank: 5, name: 'ストレート', cards: straightRanks };
+        return { rank: 5, name: 'ストレート', cards: straightCards.map(card => valueRanks[card.value]), fullHandCards: straightCards };
     }
 
     // カウントを配列に変換してソート
@@ -592,31 +754,107 @@ function evaluateHand(cards) {
 
     // 役の判定
     if (countsArray[0].count === 4) {
-        let kickers = ranks.filter(rank => rank !== countsArray[0].rank).sort((a, b) => b - a);
-        return { rank: 8, name: 'フォーカード', cards: [countsArray[0].rank, countsArray[0].rank, countsArray[0].rank, countsArray[0].rank, kickers[0]] };
+        let fourRank = countsArray[0].rank;
+        let fourCards = rankToCards[fourRank];
+        let kickers = ranks.filter(rank => rank !== fourRank).sort((a, b) => b - a);
+        let kickerCard = rankToCards[kickers[0]][0];
+        let handCards = fourCards.concat(kickerCard);
+        return { rank: 8, name: 'フォーカード', cards: countsArray.map(c => c.rank), fullHandCards: handCards };
     }
 
     if (countsArray[0].count === 3 && countsArray[1] && countsArray[1].count >= 2) {
-        return { rank: 7, name: 'フルハウス', cards: [countsArray[0].rank, countsArray[0].rank, countsArray[0].rank, countsArray[1].rank, countsArray[1].rank] };
+        let threeRank = countsArray[0].rank;
+        let pairRank = countsArray[1].rank;
+        let handCards = rankToCards[threeRank].concat(rankToCards[pairRank].slice(0, 2));
+        return { rank: 7, name: 'フルハウス', cards: countsArray.map(c => c.rank), fullHandCards: handCards };
     }
 
     if (countsArray[0].count === 3) {
-        let kickers = ranks.filter(rank => rank !== countsArray[0].rank).sort((a, b) => b - a);
-        return { rank: 4, name: 'スリーカード', cards: [countsArray[0].rank, countsArray[0].rank, countsArray[0].rank, kickers[0], kickers[1]] };
+        let threeRank = countsArray[0].rank;
+        let threeCards = rankToCards[threeRank];
+        let kickers = ranks.filter(rank => rank !== threeRank).sort((a, b) => b - a);
+        let kickerCards = kickers.map(rank => rankToCards[rank][0]);
+        let handCards = threeCards.concat(kickerCards.slice(0, 2));
+        return { rank: 4, name: 'スリーカード', cards: countsArray.map(c => c.rank), fullHandCards: handCards };
     }
 
     if (countsArray[0].count === 2 && countsArray[1] && countsArray[1].count === 2) {
-        let kickers = ranks.filter(rank => rank !== countsArray[0].rank && rank !== countsArray[1].rank).sort((a, b) => b - a);
-        return { rank: 3, name: 'ツーペア', cards: [countsArray[0].rank, countsArray[0].rank, countsArray[1].rank, countsArray[1].rank, kickers[0]] };
+        let firstPairRank = countsArray[0].rank;
+        let secondPairRank = countsArray[1].rank;
+        let firstPairCards = rankToCards[firstPairRank];
+        let secondPairCards = rankToCards[secondPairRank];
+        let kickers = ranks.filter(rank => rank !== firstPairRank && rank !== secondPairRank).sort((a, b) => b - a);
+        let kickerCard = rankToCards[kickers[0]][0];
+        let handCards = firstPairCards.concat(secondPairCards, kickerCard);
+        return { rank: 3, name: 'ツーペア', cards: countsArray.map(c => c.rank), fullHandCards: handCards };
     }
 
     if (countsArray[0].count === 2) {
-        let kickers = ranks.filter(rank => rank !== countsArray[0].rank).sort((a, b) => b - a);
-        return { rank: 2, name: 'ワンペア', cards: [countsArray[0].rank, countsArray[0].rank, kickers[0], kickers[1], kickers[2]] };
+        let pairRank = countsArray[0].rank;
+        let pairCards = rankToCards[pairRank];
+        let kickers = ranks.filter(rank => rank !== pairRank).sort((a, b) => b - a);
+        let kickerCards = kickers.map(rank => rankToCards[rank][0]);
+        let handCards = pairCards.concat(kickerCards.slice(0, 3));
+        return { rank: 2, name: 'ワンペア', cards: countsArray.map(c => c.rank), fullHandCards: handCards };
     }
 
     // ハイカード
-    return { rank: 1, name: 'ハイカード', cards: ranks.slice(0, 5) };
+    let highCards = ranks.slice(0, 5);
+    let handCards = highCards.map(rank => rankToCards[rank][0]);
+    return { rank: 1, name: 'ハイカード', cards: highCards, fullHandCards: handCards };
+}
+
+// 手役を評価する関数
+function evaluateHand(cards) {
+    let bestHand = null;
+
+    // 5枚以上のカードがある場合、全ての5枚の組み合わせを生成
+    let combinationsList = [];
+
+    if (cards.length > 5) {
+        combinationsList = combinations(cards, 5);
+    } else {
+        combinationsList = [cards];
+    }
+
+    combinationsList.forEach(handCards => {
+        let evaluatedHand = evaluateHandCombination(handCards);
+        if (!bestHand || compareHands(evaluatedHand, bestHand) > 0) {
+            bestHand = evaluatedHand;
+        }
+    });
+
+    return bestHand;
+}
+
+// ストレートのカードを取得する関数
+function getCardsByRanksForStraight(straightRanks, rankToCards) {
+    let result = [];
+    let usedRanks = new Set();
+    for (let rank of straightRanks) {
+        if (!usedRanks.has(rank)) {
+            let card = rankToCards[rank][0];
+            result.push(card);
+            usedRanks.add(rank);
+        }
+    }
+    return result;
+}
+
+// ストレートフラッシュのカードを取得する関数
+function getCardsByRanksAndSuitForStraight(straightRanks, flushSuitCards) {
+    let result = [];
+    let usedRanks = new Set();
+    for (let rank of straightRanks) {
+        for (let card of flushSuitCards) {
+            if (valueRanks[card.value] === rank && !usedRanks.has(rank)) {
+                result.push(card);
+                usedRanks.add(rank);
+                break;
+            }
+        }
+    }
+    return result;
 }
 
 // 手役を比較する関数
@@ -627,10 +865,12 @@ function compareHands(handA, handB) {
         return -1;
     } else {
         // ランクが同じ場合、カードの強さを比較
-        for (let i = 0; i < handA.cards.length; i++) {
-            if (handA.cards[i] > handB.cards[i]) {
+        let sortedA = handA.cards.slice().sort((a, b) => b - a);
+        let sortedB = handB.cards.slice().sort((a, b) => b - a);
+        for (let i = 0; i < sortedA.length; i++) {
+            if (sortedA[i] > sortedB[i]) {
                 return 1;
-            } else if (handA.cards[i] < handB.cards[i]) {
+            } else if (sortedA[i] < sortedB[i]) {
                 return -1;
             }
         }
@@ -665,108 +905,335 @@ function checkHand(playerIndex, button, playerHandDiv) {
     let isTie = isTieGame();
 
     if (isTimeAttack) {
-        let isCorrect = false;
-        if (isTie) {
-            isCorrect = false;
-        } else if (isBestHand) {
-            isCorrect = true;
-        }
+        if (gameMode === 'practice') {
+            // 実践モードのタイムアタック処理を実装
+            // ユーザーが選択したカードを取得
+            let userSelectedCards = selectedBoardCards.concat(currentQuestionData.playerHands[playerIndex].handCards);
 
-        if (isCorrect) {
-            correctAnswers++;
-            totalQuestions++;
-        } else {
-            incorrectAnswers++;
-            // 間違えた問題を保存
-            saveIncorrectQuestion();
-        }
-
-        let numPlayers = gameMode === 'normal' ?
-            parseInt(document.getElementById('num-players').value) :
-            parseInt(document.getElementById('mix-num-players').value);
-
-        if (totalQuestions >= 20) {
-            endGame();
-        } else {
-            // 次の問題へ
-            updateCounter();
-            startGame(numPlayers);
-        }
-    } else {
-        if (subGameMode === 'hand') {
-            // 役を選ぶモード
-            // 既に選択肢が表示されている場合は何もしない
-            if (playerHandDiv.querySelector('.hand-options')) {
+            // ユーザーがカードを5枚選択していない場合は警告
+            if (userSelectedCards.length !== 5) {
+                let requiredCards = 5 - currentQuestionData.playerHands[playerIndex].handCards.length;
+                let remainingCards = requiredCards - selectedBoardCards.length;
+                alert(`ボードカードからあと${remainingCards}枚選択してください。`);
                 return;
             }
 
-            // 選択肢のインターフェースを作成
-            let optionsDiv = document.createElement('div');
-            optionsDiv.className = 'hand-options';
 
-            handNames.forEach(handName => {
-                let optionButton = document.createElement('button');
-                optionButton.className = 'option-button';
-                optionButton.innerHTML = handName;
-                optionButton.addEventListener('click', () => {
-                    let isCorrect = false;
-                    if (handName === playerData.hand.name) {
-                        isCorrect = true;
-                    } else {
-                        hasMistakeInRound = true; // 不正解フラグを立てる
+            // 答えボタンを無効化
+            button.disabled = true;
+
+            // ユーザーの手役を評価
+            let userHandEvaluation = evaluateHand(userSelectedCards);
+
+            // 手役の比較
+            if (userHandEvaluation.rank === playerData.hand.rank) {
+                correctAnswers++;
+                totalQuestions++;
+            } else {
+                incorrectAnswers++;
+                totalQuestions++;
+                saveIncorrectQuestion();
+            }
+
+            if (totalQuestions >= 20) {
+                endGame();
+            } else {
+                updateCounter();
+                let numPlayers = parseInt(document.getElementById('practice-num-players').value);
+                startGame(numPlayers);
+            }
+        } else {
+            // 通常モードおよびミックスモードのタイムアタック処理（既存のコード）
+            if (subGameMode === 'hand') {
+                // 役を当てるモード
+                // 手役の選択肢が既に表示されている場合は何もしない
+                if (playerHandDiv.querySelector('.hand-options')) {
+                    return;
+                }
+
+                // 選択肢のインターフェースを作成
+                let optionsDiv = document.createElement('div');
+                optionsDiv.className = 'hand-options';
+
+                handNames.forEach((handName, index) => {
+                    let optionButton = document.createElement('button');
+                    optionButton.className = 'option-button';
+                    optionButton.innerHTML = handName;
+                    optionButton.addEventListener('click', () => {
+                        // 選択した役のランクを取得
+                        let selectedHandRank = 9 - index; // ランクは9から1まで
+
+                        // 手役の比較
+                        if (playerData.hand.rank === selectedHandRank) {
+                            correctAnswers++;
+                            totalQuestions++;
+                        } else {
+                            incorrectAnswers++;
+                            totalQuestions++;
+                            saveIncorrectQuestion();
+                        }
+
+                        button.disabled = true;
+                        optionsDiv.remove();
+
+                        if (totalQuestions >= 20) {
+                            endGame();
+                        } else {
+                            updateCounter();
+                            let numPlayers;
+                            if (gameMode === 'normal') {
+                                numPlayers = parseInt(document.getElementById('num-players').value);
+                            } else if (gameMode === 'mix') {
+                                numPlayers = parseInt(document.getElementById('mix-num-players').value);
+                            }
+                            startGame(numPlayers);
+                        }
+                    });
+                    optionsDiv.appendChild(optionButton);
+                });
+
+                // プレイヤーのハンドに選択肢を追加
+                playerHandDiv.appendChild(optionsDiv);
+            } else {
+                // 勝者を当てるモード
+                if (isTie) {
+                    incorrectAnswers++;
+                    totalQuestions++;
+                    saveIncorrectQuestion();
+                } else if (isBestHand) {
+                    correctAnswers++;
+                    totalQuestions++;
+                } else {
+                    incorrectAnswers++;
+                    totalQuestions++;
+                    saveIncorrectQuestion();
+                }
+
+                if (totalQuestions >= 20) {
+                    endGame();
+                } else {
+                    updateCounter();
+                    let numPlayers;
+                    if (gameMode === 'normal') {
+                        numPlayers = parseInt(document.getElementById('num-players').value);
+                    } else if (gameMode === 'mix') {
+                        numPlayers = parseInt(document.getElementById('mix-num-players').value);
                     }
+                    startGame(numPlayers);
+                }
+            }
+        }
+    } else {
+        if (gameMode === 'practice') {
+            // 実践モードの処理
 
-                    if (isCorrect) {
-                        if (!hasMistakeInRound) {
+            if (subGameMode === 'hand') {
+                // ユーザーが選択したカードを取得
+                let userSelectedCards = selectedBoardCards.concat(currentQuestionData.playerHands[playerIndex].handCards);
+
+                // ユーザーがカードを5枚選択していない場合は警告
+                if (userSelectedCards.length !== 5) {
+                    alert(`ボードカードから${5 - currentQuestionData.playerHands[playerIndex].handCards.length}枚選択してください。`);
+                    return;
+                }
+
+                // 答えボタンを無効化
+                button.disabled = true;
+
+                // ユーザーの手役を評価
+                let userHandEvaluation = evaluateHand(userSelectedCards);
+
+                // 手役の選択肢が既に表示されている場合は何もしない
+                if (playerHandDiv.querySelector('.hand-options')) {
+                    return;
+                }
+
+                // 選択肢のインターフェースを作成
+                let optionsDiv = document.createElement('div');
+                optionsDiv.className = 'hand-options';
+
+                handNames.forEach((handName, index) => {
+                    let optionButton = document.createElement('button');
+                    optionButton.className = 'option-button';
+                    optionButton.innerHTML = handName;
+                    optionButton.addEventListener('click', () => {
+                        // 選択した役のランクを取得
+                        let selectedHandRank = 9 - index; // ランクは9から1まで
+
+                        // 手役の比較
+                        if (userHandEvaluation.rank === selectedHandRank) {
                             alert('正解です！');
                             correctStreak++;
                             updateCounter();
                         } else {
-                            alert('正解ですが、既に不正解の選択肢を選んでいます。');
+                            alert('不正解です。');
+                            correctStreak = 0; // ミスしたのでカウンターをリセット
+                            updateCounter();
                         }
-                    } else {
-                        alert(`不正解です。`);
-                        correctStreak = 0; // ミスしたのでカウンターをリセット
-                        updateCounter();
-                    }
-                    button.disabled = true;
-                    optionsDiv.remove();
 
-                    // 「次の問題に進む」ボタンを表示
-                    document.getElementById('next-button').style.display = 'inline-block';
+                        optionsDiv.remove();
+
+                        // 選択状態を解除
+                        selectedBoardCards = [];
+                        document.querySelectorAll('.card.selected').forEach(cardDiv => {
+                            cardDiv.classList.remove('selected');
+                        });
+
+                        // 「次の問題に進む」ボタンを表示
+                        document.getElementById('next-button').style.display = 'inline-block';
+                    });
+                    optionsDiv.appendChild(optionButton);
                 });
-                optionsDiv.appendChild(optionButton);
-            });
 
-            // プレイヤーのハンドに選択肢を追加
-            playerHandDiv.appendChild(optionsDiv);
-        } else {
-            // 勝者を選ぶモード
-            if (isTie) {
-                alert(`不正解です。引き分け（チョップ）でした。`);
-                hasMistakeInRound = true;
-                correctStreak = 0; // ミスしたのでカウンターをリセット
-                updateCounter();
-            } else if (isBestHand) {
-                if (!hasMistakeInRound) {
-                    alert(`正解です！あなたの役は "${playerData.hand.name}" です。`);
+                // プレイヤーのハンドに選択肢を追加
+                playerHandDiv.appendChild(optionsDiv);
+            } else {
+                // 勝者を選ぶモード
+
+                // ユーザーが選択したカードを取得
+                let userSelectedCards = selectedBoardCards.concat(currentQuestionData.playerHands[playerIndex].handCards);
+
+                // ユーザーがカードを5枚選択していない場合は警告
+                if (userSelectedCards.length !== 5) {
+                    alert(`ボードカードから${5 - currentQuestionData.playerHands[playerIndex].handCards.length}枚選択してください。`);
+                    return;
+                }
+
+                // 答えボタンを無効化
+                button.disabled = true;
+
+                // ユーザーの手役を評価
+                let userHandEvaluation = evaluateHand(userSelectedCards);
+
+                // 他のプレイヤーの手役と比較
+                let isBestHand = true;
+                for (let i = 0; i < playerHandsData.length; i++) {
+                    if (i !== playerIndex) {
+                        let comparison = compareHands(userHandEvaluation, playerHandsData[i].hand);
+                        if (comparison < 0) {
+                            isBestHand = false;
+                            break;
+                        }
+                    }
+                }
+
+                // 結果の表示
+                if (isBestHand) {
+                    alert('正解です！あなたが勝者です。');
                     correctStreak++;
                     updateCounter();
                 } else {
-                    alert(`正解ですが、既に不正解の選択肢を選んでいます。`);
+                    alert('不正解です。残念ながら他のプレイヤーが勝者です。');
+                    correctStreak = 0;
+                    updateCounter();
                 }
-            } else {
-                let winnerIndices = getWinnerIndices();
-                let winnerHandName = playerHandsData[winnerIndices[0]].hand.name;
-                alert(`不正解です。勝者は "プレイヤー ${winnerIndices[0] + 1}" です。勝者の役は "${winnerHandName}" です。`);
-                hasMistakeInRound = true;
-                correctStreak = 0; // ミスしたのでカウンターをリセット
-                updateCounter();
+
+                // 選択状態を解除
+                selectedBoardCards = [];
+                document.querySelectorAll('.card.selected').forEach(cardDiv => {
+                    cardDiv.classList.remove('selected');
+                });
+
+                // 「次の問題に進む」ボタンを表示
+                document.getElementById('next-button').style.display = 'inline-block';
             }
-            // 「次の問題に進む」ボタンを表示
-            document.getElementById('next-button').style.display = 'inline-block';
+        } else {
+            // 通常モードおよびミックスモードの処理
+            if (subGameMode === 'hand') {
+                // 役を選ぶモード
+                // 既に選択肢が表示されている場合は何もしない
+                if (playerHandDiv.querySelector('.hand-options')) {
+                    return;
+                }
+
+                // 選択肢のインターフェースを作成
+                let optionsDiv = document.createElement('div');
+                optionsDiv.className = 'hand-options';
+
+                handNames.forEach((handName, index) => {
+                    let optionButton = document.createElement('button');
+                    optionButton.className = 'option-button';
+                    optionButton.innerHTML = handName;
+                    optionButton.addEventListener('click', () => {
+                        // 選択した役のランクを取得
+                        let selectedHandRank = 9 - index; // ランクは9から1まで
+
+                        // 手役の比較
+                        if (playerData.hand.rank === selectedHandRank) {
+                            if (!hasMistakeInRound) {
+                                alert('正解です！');
+                                correctStreak++;
+                                updateCounter();
+                            } else {
+                                alert('正解ですが、既に不正解の選択肢を選んでいます。');
+                            }
+                        } else {
+                            alert(`不正解です。`);
+                            hasMistakeInRound = true;
+                            correctStreak = 0; // ミスしたのでカウンターをリセット
+                            updateCounter();
+                        }
+                        button.disabled = true;
+                        optionsDiv.remove();
+
+                        // 「次の問題に進む」ボタンを表示
+                        document.getElementById('next-button').style.display = 'inline-block';
+                    });
+                    optionsDiv.appendChild(optionButton);
+                });
+
+                // プレイヤーのハンドに選択肢を追加
+                playerHandDiv.appendChild(optionsDiv);
+            } else {
+                // 勝者を選ぶモード
+                if (isTie) {
+                    alert(`不正解です。引き分け（チョップ）でした。`);
+                    hasMistakeInRound = true;
+                    correctStreak = 0; // ミスしたのでカウンターをリセット
+                    updateCounter();
+                } else if (isBestHand) {
+                    if (!hasMistakeInRound) {
+                        alert(`正解です！あなたの役は "${playerData.hand.name}" です。`);
+                        correctStreak++;
+                        updateCounter();
+                    } else {
+                        alert(`正解ですが、既に不正解の選択肢を選んでいます。`);
+                    }
+                } else {
+                    let winnerIndices = getWinnerIndices();
+                    let winnerHandName = playerHandsData[winnerIndices[0]].hand.name;
+                    alert(`不正解です。勝者は "プレイヤー ${winnerIndices[0] + 1}" です。勝者の役は "${winnerHandName}" です。`);
+                    hasMistakeInRound = true;
+                    correctStreak = 0; // ミスしたのでカウンターをリセット
+                    updateCounter();
+                }
+                // 「次の問題に進む」ボタンを表示
+                document.getElementById('next-button').style.display = 'inline-block';
+            }
         }
     }
+}
+
+// ゲーム全体が引き分けかどうかを判定する関数
+function isTieGame() {
+    let winnerIndices = getWinnerIndices();
+    return winnerIndices.length > 1;
+}
+
+// 勝者のインデックスを取得する関数
+function getWinnerIndices() {
+    let bestHand = playerHandsData[0].hand;
+    let winnerIndices = [0];
+    for (let i = 1; i < playerHandsData.length; i++) {
+        let comparison = compareHands(bestHand, playerHandsData[i].hand);
+        if (comparison < 0) {
+            bestHand = playerHandsData[i].hand;
+            winnerIndices = [i];
+        } else if (comparison === 0) {
+            winnerIndices.push(i);
+        }
+    }
+    return winnerIndices;
 }
 
 // 「チョップ」をチェックする関数
@@ -774,25 +1241,28 @@ function checkChop() {
     let isTie = isTieGame();
 
     if (isTimeAttack) {
-        let isCorrect = isTie;
-
-        if (isCorrect) {
+        // タイムアタックモードの処理
+        if (isTie) {
             correctAnswers++;
             totalQuestions++;
         } else {
             incorrectAnswers++;
-            // 間違えた問題を保存
+            totalQuestions++;
             saveIncorrectQuestion();
         }
 
         if (totalQuestions >= 20) {
             endGame();
         } else {
-            // 次の問題へ
             updateCounter();
-            let numPlayers = gameMode === 'normal' ?
-                parseInt(document.getElementById('num-players').value) :
-                parseInt(document.getElementById('mix-num-players').value);
+            let numPlayers;
+            if (gameMode === 'normal') {
+                numPlayers = parseInt(document.getElementById('num-players').value);
+            } else if (gameMode === 'mix') {
+                numPlayers = parseInt(document.getElementById('mix-num-players').value);
+            } else if (gameMode === 'practice') {
+                numPlayers = parseInt(document.getElementById('practice-num-players').value);
+            }
             startGame(numPlayers);
         }
     } else {
@@ -825,28 +1295,6 @@ function saveIncorrectQuestion() {
         playerHands: currentQuestionData.playerHands,
         correctHandNames: currentQuestionData.correctHandNames
     });
-}
-
-// ゲーム全体が引き分けかどうかを判定する関数
-function isTieGame() {
-    let winnerIndices = getWinnerIndices();
-    return winnerIndices.length > 1;
-}
-
-// 勝者のインデックスを取得する関数
-function getWinnerIndices() {
-    let bestHand = playerHandsData[0].hand;
-    let winnerIndices = [0];
-    for (let i = 1; i < playerHandsData.length; i++) {
-        let comparison = compareHands(bestHand, playerHandsData[i].hand);
-        if (comparison < 0) {
-            bestHand = playerHandsData[i].hand;
-            winnerIndices = [i];
-        } else if (comparison === 0) {
-            winnerIndices.push(i);
-        }
-    }
-    return winnerIndices;
 }
 
 // 「振り返り」ボタンのイベントリスナー

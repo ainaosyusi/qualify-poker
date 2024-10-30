@@ -12,6 +12,10 @@ body.mix-mode {
     background-color: #000080; /* ミックスゲーム時の背景色（濃い青色） */
 }
 
+body.practice-mode {
+    background-color: #800000; /* 実践モード時の背景色（濃い赤色） */
+}
+
 /* タイトルの位置とスタイルを調整 */
 h1 {
     position: absolute;
@@ -72,12 +76,17 @@ body.mix-mode .active-mode {
     border-color: #000080;
 }
 
+body.practice-mode .active-mode {
+    color: #800000;
+    border-color: #800000;
+}
+
 /* ゲーム選択エリア */
 #game-selection {
     margin: 20px;
 }
 
-#player-selection, #mix-player-selection {
+#player-selection, #mix-player-selection, #practice-player-selection {
     margin: 20px;
 }
 
@@ -110,6 +119,7 @@ body.mix-mode .active-mode {
     font-size: 20px;
     position: relative;
     overflow: hidden;
+    transition: transform 0.2s;
 }
 
 .card .suit {
@@ -118,6 +128,12 @@ body.mix-mode .active-mode {
 
 .card .value {
     font-size: 24px;
+}
+
+/* カードの選択状態のスタイル */
+.card.selected {
+    transform: translateY(-10px);
+    border-color: yellow;
 }
 
 .player-hand {
